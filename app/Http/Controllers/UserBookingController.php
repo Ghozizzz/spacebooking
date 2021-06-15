@@ -16,6 +16,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Facades\Http;
 use Mail;
+use DB;
 
 class UserBookingController extends Controller
 {
@@ -69,12 +70,44 @@ class UserBookingController extends Controller
                     ->orderBy('id', 'desc')
                     ->get();
             } elseif ($status == 'pending' || $status == 'revise' || $status == "") {
-                $booking = UserBooking::whereIn('requestorFacility', explode(';',session('faculty_value')))
-                    ->where('approvalStatus', 'pending')
-                    ->orWhere('approvalStatus', 'revise')
-                    ->has('facilities')
-                    ->orderBy('id', 'desc')
-                    ->get();
+                // $booking = UserBooking::where(function($query){
+                //             $query->where('approvalStatus', 'pending')
+                //             ->orWhere('approvalStatus', 'revise');
+                //         })
+                //     ->leftJoin('u_users', function($join) {
+                //       $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                //     });
+                //     if(session('role') == 2){
+                //         $booking->where('u_type', 0);
+                //     }else{
+                //         $booking->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                //         ->where('u_type', 1);  
+                //     }
+                //     $booking->has('facilities')
+                //     ->orderBy('user_bookings.id', 'desc')
+                //     ->get();
+                    if(session('role') == 2){
+                        $booking = UserBooking::where(function($query){
+                                $query->where('approvalStatus', 'pending')
+                                ->orWhere('approvalStatus', 'revise');
+                            })->leftJoin('u_users', function($join) {
+                              $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                            })->has('facilities')
+                            ->where('u_type', 0)
+                            ->orderBy('user_bookings.id', 'desc')
+                            ->get();
+                    }elseif(session('role') == 3){
+                        $booking = UserBooking::where(function($query){
+                                $query->where('approvalStatus', 'pending')
+                                ->orWhere('approvalStatus', 'revise');
+                            })->leftJoin('u_users', function($join) {
+                              $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                            })->has('facilities')
+                            ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                            ->where('u_type', 1)
+                            ->orderBy('user_bookings.id', 'desc')
+                            ->get();
+                    }
             } elseif ($status == 'accept') {
                 $booking = UserBooking::where('approvalStatus', 'accept')
                     ->has('facilities')

@@ -112,11 +112,11 @@ class AuthController extends Controller
   }
 
   public function callback_test(){
-    // $user['email'] = 'test@gmail.com';
-    // $user['displayName'] = 'test ajah';
+    $user['email'] = 'test@gmail.com';
+    $user['displayName'] = 'test ajah';
 
-    $user['email'] = 'faculty@gmail.com';
-    $user['displayName'] = 'faculty ajah';
+    // $user['email'] = 'faculty@gmail.com';
+    // $user['displayName'] = 'faculty ajah';
 
     // $user['email'] = 'test.booking@student.uph.edu';
     // $user['displayName'] = 'Test Student';
