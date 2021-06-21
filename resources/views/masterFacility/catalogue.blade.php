@@ -108,7 +108,7 @@
               <div class="p-2 bd-highlight mr-3"><i class="far fa-check-circle" style="color:green"></i> Available
               </div>
               <div class="p-2 bd-highlight mr-3"><i class="far fa-building"></i> {{$dataMasterFacilities->type}}</div>
-              <div class="p-2 bd-highlight mr-3"><i class="far fa-user"></i> {{round($dataMasterFacilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100,0)}} seats</div>
+              <div class="p-2 bd-highlight mr-3"><i class="far fa-user"></i> {{floor($dataMasterFacilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}} seats</div>
             </div>
             <div class="d-flex flex-row bd-highlight mb-2">
               <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#dateModal">
@@ -151,47 +151,8 @@
                         <i class="far fa-calendar"></i>
                       </div>
                     </div>
+                    <input type="text" class="form-control" name="bookDate" id="bookDate" value="{{old('bookDate')}}" />
                     <input type="hidden" name="masterFacilityId" value="{{$dataMasterFacilities->id}}">
-                    <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookDate" id="bookDate" value="{{ old('bookDate') }}" required>
-                  </div>
-                </div>
-
-                <div class="col">
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <div class="input-group-text">
-                        <i class="far fa-clock"></i>
-                      </div>
-                    </div>
-                    <select class="custom-select" name="bookTime" id="bookTime" required>
-                      <option value="" {{ (old("bookTime") == "" ? "selected":"") }}>Choose a time</option>
-                      @php
-                        $start = strtotime($dataMasterConfigs['bookStart']->configValue);
-                        $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
-                        $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
-                        $duration = $bookDuration * 60;
-                      @endphp
-                      
-                      @for($time = $start ; $time < $end ; $time += $duration)
-                      <option value="{{date("H:i", $time)}}" {{ (old("bookTime") == date("H:i", $time) ? "selected":"") }}>{{date("H:i", $time)}}</option>
-                      @endfor
-                    </select>
-                  </div>
-                </div>
-
-                <div class="col">
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <div class="input-group-text">
-                        <i class="fas fa-hourglass-end"></i>
-                      </div>
-                    </div>
-                    <select class="custom-select" name="bookDuration" id="bookDuration">
-                      <option value="" {{ (old("bookDuration") == "" ? "selected":"") }}>Set duration</option>
-                      @for($i = 1; $i < 6; $i++)
-                      <option value="{{$i * $bookDuration}}" {{ (old("bookDuration") == $i * $bookDuration ? "selected":"") }}>{{$i * $bookDuration}} minutes</option>
-                      @endfor
-                    </select>
                   </div>
                 </div>
 
@@ -297,7 +258,7 @@
               <div class="form-row">
                 <div class="col">
                   <div class="input-group">
-                    <a href="#" class="btn btn-primary btn-block" data-toggle="modal" data-target="#summaryModal" id="summaryBtn">Confirm booking</a>
+                    <a href="#" class="btn btn-primary btn-block" id="summaryBtn">Confirm booking</a>
                   </div>
                 </div>
               </div>
@@ -362,6 +323,17 @@
       <script src="{{asset('js/lightbox.min.js')}}"></script>
       
       <script>
+        $(function() {
+          $('input[name="bookDate"]').daterangepicker({
+            timePicker: true,
+            timePicker24Hour: true,
+            timePickerIncrement: 60,
+            locale: {
+              format: 'DD/MM/YYYY . HH:00'
+            }
+          });
+        });
+
         $("#file").on('change', function() {
          var fullPath = this.value;
          var filename = fullPath.replace(/^.*[\\\/]/, '')
@@ -373,17 +345,44 @@
         });
 
         $('#summaryBtn').click(function(){
-          var date = $('#bookDate').val();
-          var time = $('#bookTime').val();
-          var duration = $('#bookDuration').val();
-          var datetime = date+", at "+time+" for "+duration+" minutes";
-          $('#summaryDatetime').text(datetime);
+          if($('#eventName').val()==''){
+            alert('Please Fill Event Name');
+          }else if($('#eventType').val()==''){
+            alert('Please Choose Event Type');
+          }else if($('#requestorPhone').val()==''){
+            alert('Please Fill Phone Number');
+          }else if($('#requestorFacility').val()==''){
+            alert('Please Choose Facult/Unit');
+          }else if($('#bookDate').val()==''){
+            alert('Please Fill Date');
+          }else{
+            var date = $('#bookDate').val();
 
-          var equipments = $('#equipments').val().join(", ");
-          $('#summaryEquipment').text(equipments);
+            var bD = date.split('-');
 
-          var request = $('#bookReason').val();
-          $('#summaryRequest').text(request);
+            var bstart = bD[0].split('.');
+            var bend = bD[1].split('.');
+
+            var bs = bstart[0];
+            var bookStart = bs+bstart[1].replaceAll(' ','');
+
+            var be = bend[0];
+            var bookEnd = be+bend[1].replaceAll(' ','');
+            var ms = moment(bookEnd,"DD/MM/YYYY HH:mm").diff(moment(bookStart,"DD/MM/YYYY HH:mm"));
+            var d = moment.duration(ms);
+            var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
+
+            var datetime = bs+", at "+bstart[1]+" for "+s+" hours";
+            $('#summaryDatetime').text(datetime);
+
+            var equipments = $('#equipments').val().join(", ");
+            $('#summaryEquipment').text(equipments);
+
+            var request = $('#bookReason').val();
+            $('#summaryRequest').text(request);
+
+            $('#summaryModal').modal('show');
+          }
         });
 
         $('#bookBtn').click(function(){

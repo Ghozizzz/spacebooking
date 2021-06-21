@@ -33,6 +33,7 @@ use Microsoft\Graph\Model;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
+use DB;
 
 class MasterFacilityController extends Controller
 {
@@ -172,37 +173,127 @@ class MasterFacilityController extends Controller
 
     public function search_query(Request $request)
     {
+        $building = MasterFacility::select('type as building')
+        ->distinct()
+        ->orderBy('type', 'asc')
+        ->get();
+
+        $callback = $this->search_room($request);
+
+        // print("<pre>".print_r($callback['dataMasterConfig'],true)."</​pre>");
+
+        $viewData = $this->loadViewData();
+        if (session('userName')) {
+            $data=[
+                'userName' => $viewData['userName'],
+                'userEmail' => $viewData['userEmail'],
+                'dataMasterFacilities' => $callback['dataMasterFacility'],
+                'building' => $building,
+                'dataMasterConfigs' => $callback['dataMasterConfig'],
+                'beginDate' => $callback['beginDate'],
+                'endDate' => $callback['endDate'],
+            ];
+        }
+
+        // print("<pre>".print_r($building,true)."</​pre>");die();
+        // session()->flashInput($request->input());
+        $request->flash();
+        return view('masterFacility.search', $data);
+    }
+
+    public function search_room($request)
+    {
+
         $bookDate = $request->bookDate;
-        $bookTime = $request->bookTime;
-        $bookDuration = $request->bookDuration;
-        $d    = new \DateTime($bookDate);
-        $dayName = strtolower($d->format('l'));
+        // echo $request->building;;die();
+        $bD = explode('-', $bookDate);
+
+        $bstart = explode('.', $bD[0]);
+        $bend = explode('.', $bD[1]);
+
+        $bs = str_replace("/", '-', $bstart[0]);
+        $bookStart = date('Y-m-d H:i',strtotime($bs.' '.$bstart[1]));
+
+        $be = str_replace("/", '-', $bend[0]);
+        $bookEnd = date('Y-m-d H:i',strtotime($be.' '.$bend[1]));
+
+        // echo $bookStart.'<br>'.$bookEnd;die();
+        // $bookTime = $request->bookTime;
+        // $bookDuration = $request->bookDuration;
+        // $d    = new \DateTime($bookDate);
+        // $dayName = strtolower($d->format('l'));
+        $dayName = '';
+        $no = 0;
+        $from_date = new \DateTime($bookStart);
+        $to_date = new \DateTime($bookEnd);
+
+        $dayName = [];
+        $dayNameIndo = [];
+        for ($date = $from_date; $date <= $to_date; $date->modify('+1 day')) {
+            $dayName[] = strtolower($date->format('l'));
+            $newDate = $date->format('d-m-Y');
+            $hari = Carbon::createFromFormat('d-m-Y', $newDate)->locale('id'); 
+            $dayNameIndo[] = strtoupper($hari->translatedFormat('l'));
+        }
+
+        $monitorClasses  = MonitorClass::whereIn('hari', $dayNameIndo)
+            ->leftJoin('u_master_facility', function($join) {
+                $join->on('u_monitor_classes.facilId', '=', 'u_master_facility.facilId');
+            })
+            ->get(['u_monitor_classes.*','u_master_facility.id as id_facility']);
+
+        $excludeClass = [];
+        foreach ($monitorClasses as $key => $monitorClass) {
+            // $checker         = 0;
+            // $timeExplode = explode("-", $monitorClass->jam);
+            $startTime = Carbon::createFromTimeString("$monitorClass->start");
+            $endTime = Carbon::createFromTimeString("$monitorClass->end");
+
+            // echo $startTime.' > '.$bookStart.'<br>';
+
+            // echo $endTime.' < '.$bookEnd;die();
+            if($startTime > $bookStart && $endTime < $bookEnd){
+                if(!empty($monitorClass->id_facility)){
+                    $excludeClass[$key] = $monitorClass->id_facility;
+                }
+            }
+        }
+        // print_r($excludeClass);die();
+
         $dataMasterConfig = MasterConfig::all()->keyBy('configName');
 
-        if (!is_null($bookDate) && !is_null($bookTime) && !is_null($bookDuration)) {
-            $dataBooking = UserBooking::when($bookDate, function ($query, $bookDate) {
-                return $query->where('bookDate', $bookDate);
-            }, function ($query) {
-                return $query;
-            })
-            ->when($bookTime, function ($query, $bookTime) {
-                return $query->where('bookTime', $bookTime);
-            }, function ($query) {
-                return $query;
-            })
-            ->when($bookDuration, function ($query, $bookDuration) {
-                return $query->where('bookDuration', '>=', $bookDuration);
-            }, function ($query) {
-                return $query;
-            })
-            ->where('approvalStatus', 'accept')
-            ->select('masterFacilityId')
-            ->distinct()
-            ->get();
-            $exclude = $dataBooking->pluck('masterFacilityId')->all();
-        }else{
-            $exclude = array();
+        $exclude = [];
+        if (!is_null($bookDate)) {
+            // $dataBooking = UserBooking::when($bookEnd, function ($query, $bookEnd) {
+            //     return $query->where('bookEnd','>=', $bookEnd);
+            // }, function ($query) {
+            //     return $query;
+            // })
+            // ->whereIn('approvalStatus', ['accept','pending'])
+            // ->select('masterFacilityId','DB::raw('CASE WHEN Sales >= 1000 THEN 'Good Day' WHEN Sales >= 500 THEN 'OK Day' ELSE 'Bad Day' END')')
+            // ->distinct()
+            // ->get();
+            // $exclude = $dataBooking->pluck('masterFacilityId')->all();
+            $dataBooking = DB::select("
+                select masterFacilityId,
+                    sum(
+                    CASE WHEN bookStart between '".$bookStart."' and '".$bookEnd."' THEN 1
+                    WHEN bookEnd between '".$bookStart."' and '".$bookEnd."' THEN 1
+                    WHEN bookStart <= '".$bookStart."' and bookEnd >= '".$bookEnd."' THEN 1
+                    ELSE 0 END
+                    ) as jml
+                from user_bookings where bookEnd >= '".$bookStart."'
+                group by masterFacilityId
+            ");
+            foreach ($dataBooking as $key => $value) {
+                if($value->jml>0){
+                    $exclude[$key] = $value->masterFacilityId;
+                }
+            }
         }
+
+        $exclude = array_unique(array_merge($exclude,$excludeClass), SORT_REGULAR);
+        // print_r($excludeClass);die();
 
         $availability = $request->availability;
         $building = $request->building;
@@ -210,6 +301,7 @@ class MasterFacilityController extends Controller
         $cap['capacity'] = $capacity;
         $cap['facilityCapacity'] = $dataMasterConfig->get('facilityCapacity');
 
+        // DB::enableQueryLog();
         $dataMasterFacility = MasterFacility::when($availability, function ($query, $availability) {
             return $query->where('status', $availability);
         }, function ($query) {
@@ -222,19 +314,25 @@ class MasterFacilityController extends Controller
         })
         ->when($cap, function ($query, $cap) {
             $capacity = $cap['capacity'];
-            return $query->whereRaw('capacity*'.$cap['facilityCapacity']->configValue.'/100 >= '.$capacity);
+            return $query->whereRaw('FLOOR(capacity*'.$cap['facilityCapacity']->configValue.'/100) >= '.$capacity);
         }, function ($query) {
             return $query;
         })
         ->whereNotIn('id', $exclude)
         ->whereNotIn('days' , ['null', 'NULL'])
-        ->where('days', 'LIKE', '%'.$dayName.'%')
+        // ->where('days', 'LIKE', '%'.$dayName.'%')
+        // ->whereIn('days', $dayName)
+        ->when($dayName, function ($query, $dayName) {
+            foreach ($dayName as $v) {
+                $query->where('days', 'LIKE', '%'.$v.'%');
+            }
+            return $query;
+        }, function ($query){
+            return $query;
+        })
         ->get();
-
-        $building = MasterFacility::select('type as building')
-        ->distinct()
-        ->orderBy('type', 'asc')
-        ->get();
+        // dd(DB::getQueryLog());
+        // print_r($dataMasterFacility);die();
 
         $activeTerm = $dataMasterConfig->get('activeTerm');
         if(!is_null($activeTerm)){
@@ -254,22 +352,14 @@ class MasterFacilityController extends Controller
             $beginDate = '';
             $endDate = '';
         }
-        $viewData = $this->loadViewData();
-        if (session('userName')) {
-            $data=[
-                'userName' => $viewData['userName'],
-                'userEmail' => $viewData['userEmail'],
-                'dataMasterFacilities' => $dataMasterFacility,
-                'building' => $building,
-                'dataMasterConfigs' => $dataMasterConfig,
-                'beginDate' => $beginDate,
-                'endDate' => $endDate,
-            ];
-        }
 
-        // session()->flashInput($request->input());
-        $request->flash();
-        return view('masterFacility.search', $data);
+        $data['dataMasterFacility'] = $dataMasterFacility;
+        $data['dataMasterConfig'] = $dataMasterConfig;
+        $data['beginDate'] = $beginDate;
+        $data['endDate'] = $endDate;
+
+        // print("<pre>".print_r($dataMasterConfig,true)."</​pre>");die();
+        return $data;
     }
 
     public function search()

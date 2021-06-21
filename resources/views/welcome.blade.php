@@ -157,11 +157,10 @@
                                                   <strong>Booking time:</strong>
                                                   {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}} minutes
                                                   </p>
-					          <p>
-                                                  <strong>Booking time:</strong>
-
-					          </p>
-
+                              					          <p>
+                                                    <strong>Booking time details:</strong>
+                                                    {{$item->bookStart.' until '.$item->bookEnd}}
+                              					          </p>
                                                   <p>
                                                   <strong>Equipments:</strong>
                                                   @if(!is_null($item->equipments) && $item->equipments !== 'null')

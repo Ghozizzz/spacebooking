@@ -45,11 +45,16 @@ class CalenderController extends Controller
                 $bookDurationInt = intval($userBooking->bookDuration);
                 $endTime         = Carbon::createFromTimeString("$startTimeString")->addMinutes($bookDurationInt);
                 
+                // $startTime        = Carbon::createFromTimeString("$userBooking->bookStart");
+                // $endTime          = Carbon::createFromTimeString("$userBooking->bookEnd");
+
                 $startTime        = $startTime->format('H:i:s');
                 $endTime          = $endTime->format('H:i:s');
                 $bookingDate      = $userBooking->bookDate->format('yy-m-d');
-                $startBookingTime = "$bookingDate".'T'."$startTime";
-                $endBookingTime   = "$bookingDate".'T'."$endTime";
+                // $startBookingTime = "$bookingDate".'T'."$startTime";
+                // $endBookingTime   = "$bookingDate".'T'."$endTime";
+                $startBookingTime = $userBooking->bookStart;
+                $endBookingTime   = $userBooking->bookEnd;
 
                 $calendarData['id']             = $userBooking->id;
                 $calendarData['approvalStatus'] = $userBooking->approvalStatus;
@@ -61,15 +66,16 @@ class CalenderController extends Controller
                 $calendarData['end']            = $endBookingTime;
                 array_push($data,$calendarData);
             }
+            // print_r($data);die();
             // $calendarData = [];
             foreach ($monitorClasses as $monitorClass ) {
-		$period = MasterPeriod::where('term', $monitorClass->term)
-		->where('institution', $monitorClass->institution)
-		->where('career', $monitorClass->career)
-		->first();
+        		$period = MasterPeriod::where('term', $monitorClass->term)
+        		->where('institution', $monitorClass->institution)
+        		->where('career', $monitorClass->career)
+        		->first();
 
-		$beginDate = $period->beginDate;
-		$endDate = $period->endDate;
+        		$beginDate = $period->beginDate;
+        		$endDate = $period->endDate;
 
                 $timeExplode = explode("-",$monitorClass->jam);
                 $startTime   = Carbon::createFromTimeString("$timeExplode[0]");

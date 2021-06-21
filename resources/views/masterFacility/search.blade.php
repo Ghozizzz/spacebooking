@@ -25,7 +25,7 @@
             <div class="card-body">
               <div class="info-area px-1" style="overflow-y:auto">
                   <div class="form-row">
-                    <div class="col-xs-12 col-md-4">
+                    <div class="col-xs-12 col-md-6">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
@@ -41,7 +41,7 @@
                       </div>
                     </div>
 
-                    <div class="col-xs-12 col-md-4">
+                    <div class="col-xs-12 col-md-6">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
@@ -52,7 +52,22 @@
                       </div>
                     </div>
 
-                    <div class="col-xs-12 col-md-4">
+                  </div>
+
+                  <div class="form-row my-2">
+                    <div class="col-xs-12 col-md-6">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <i class="far fa-calendar"></i>
+                          </div>
+                        </div>
+                      {{-- <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookDate" value="{{old('bookDate')}}" min="{{$beginDate}}" max="{{$endDate}}" required> --}}
+                        <input type="text" class="form-control" name="bookDate" value="{{old('bookDate')}}" />
+                      </div>
+                    </div>
+
+                    <div class="col-xs-12 col-md-6">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
@@ -67,58 +82,6 @@
                       </div>
                     </div>
 
-                  </div>
-
-                  <div class="form-row my-2">
-                    <div class="col-xs-12 col-md-4">
-                      <div class="input-group">
-                        <div class="input-group-prepend">
-                          <div class="input-group-text">
-                            <i class="far fa-calendar"></i>
-                          </div>
-                        </div>
-                      <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookDate" value="{{old('bookDate')}}" min="{{$beginDate}}" max="{{$endDate}}" required>
-                      </div>
-                    </div>
-
-                    <div class="col-xs-12 col-md-4">
-                      <div class="input-group">
-                        <div class="input-group-prepend">
-                          <div class="input-group-text">
-                            <i class="far fa-clock"></i>
-                          </div>
-                        </div>
-                        <select class="custom-select" name="bookTime" required>
-                          <option value="" {{ (old("bookTime") == "" ? "selected":"") }}>Choose a time</option>
-                          @php
-                            $start = strtotime($dataMasterConfigs['bookStart']->configValue);
-                            $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
-                            $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
-                            $duration = $bookDuration * 60;
-                          @endphp
-
-                          @for($time = $start ; $time < $end ; $time += $duration)
-                          <option value="{{date("H:i", $time)}}" {{ (old("bookTime") == date("H:i", $time) ? "selected":"") }}>{{date("H:i", $time)}}</option>
-                          @endfor
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="col-xs-12 col-md-4">
-                      <div class="input-group">
-                        <div class="input-group-prepend">
-                          <div class="input-group-text">
-                            <i class="fas fa-hourglass-half"></i>
-                          </div>
-                        </div>
-                        <select class="custom-select" name="bookDuration">
-                          <option value="" {{ (old("bookDuration") == "" ? "selected":"") }}>Set duration</option>
-                          @for($i = 1; $i < 6; $i++)
-                          <option value="{{$i * $bookDuration}}" {{ (old("bookDuration") == $i * $bookDuration ? "selected":"") }}>{{$i * $bookDuration}} minutes</option>
-                          @endfor
-                        </select>
-                      </div>
-                    </div>
                   </div>
               </div>
             </div>
@@ -146,7 +109,7 @@
                 <i class="far fa-building"></i> {{$item->type}}
               </div>
               <div class="col-2">
-                <i class="far fa-user"></i> {{ round($item->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100,0) }} seats
+                <i class="far fa-user"></i> {{ floor($item->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100) }} seats
               </div>
               <div class="col-2">
                 @if($item->status == 'A')
@@ -165,4 +128,18 @@
   </div>
 
 </body>
+@endsection
+@section('script')
+<script>
+$(function() {
+  $('input[name="bookDate"]').daterangepicker({
+    timePicker: true,
+    timePicker24Hour: true,
+    timePickerIncrement: 30,
+    locale: {
+      format: 'DD/MM/YYYY . HH:00'
+    }
+  });
+});
+</script>
 @endsection

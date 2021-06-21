@@ -14,6 +14,8 @@ class UserBooking extends Model
         'bookTime',
         'bookDuration',
         'bookReason',
+        'bookStart',
+        'bookEnd',
         'eventName',
         'eventType',
         'file',

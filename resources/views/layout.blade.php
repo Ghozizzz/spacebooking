@@ -24,6 +24,10 @@
   <!-- Custom styles for this template-->
   <link href="{{ asset('css/sb-admin-2.min.css')}}" rel="stylesheet">
   <link href="{{ asset('css/select2.min.css')}}" rel="stylesheet">
+  
+  <script type="text/javascript" src="{{ asset('js/moment.min.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('js/daterangepicker.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/daterangepicker.css') }}" />
   @yield('script')
 
   <style>

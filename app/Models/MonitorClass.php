@@ -31,6 +31,8 @@ class MonitorClass extends Model
         'patNbr',
         'hari',
         'jam',
+        'start',
+        'end',
         'facilId',
         'totEnrl',
         'classStat',
