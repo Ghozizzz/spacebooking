@@ -226,6 +226,7 @@ class MasterFacilityController extends Controller
         $no = 0;
         $from_date = new \DateTime($bookStart);
         $to_date = new \DateTime($bookEnd);
+        // echo $bookStart;die();
 
         $dayName = [];
         $dayNameIndo = [];
@@ -240,6 +241,7 @@ class MasterFacilityController extends Controller
             ->leftJoin('u_master_facility', function($join) {
                 $join->on('u_monitor_classes.facilId', '=', 'u_master_facility.facilId');
             })
+            ->where('jam','!=',' -')
             ->get(['u_monitor_classes.*','u_master_facility.id as id_facility']);
 
         $excludeClass = [];
