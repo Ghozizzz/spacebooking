@@ -139,52 +139,89 @@
                     <div class="input-group-prepend">
                       <div class="input-group-text">
                         <i class="far fa-calendar"></i>
+                        Start
                       </div>
                     </div>
                     <input type="hidden" name="masterFacilityId" value="{{$dataMasterFacilities->id}}">
                     <input type="hidden" name="id" value="{{$dataBooking->id}}">
-                    <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookDate" id="bookDate" value="{{ date('Y-m-d', strtotime($dataBooking['bookDate'])) }}" required>
+                    <input type="date" class="form-control" placeholder="dd/mm/yy" id="bookStartDate" name="bookStartDate" value="{{ date('Y-m-d', strtotime($dataBooking['bookDate'])) }}" required>
                   </div>
                 </div>
 
-                <div class="col">
+                <div class="col-xs-12 col-md-3 mb-2">
                   <div class="input-group">
                     <div class="input-group-prepend">
                       <div class="input-group-text">
-                        <i class="far fa-clock"></i>
+                        <i class="fas fa-hourglass-half"></i>
                       </div>
                     </div>
-                    <select class="custom-select" name="bookTime" id="bookTime" required>
-                      <option value="" {{ ($dataBooking["bookTime"] == "" ? "selected":"") }}>Choose a time</option>
+
+                    <select class="custom-select" id="bookStartHour" name="bookStartHour" required>
+                      <option value="" {{ ($dataBooking["bookTime"] == "" ? "selected":"") }}>Hour</option>
                       @php
                         $start = strtotime($dataMasterConfigs['bookStart']->configValue);
                         $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
                         $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
                         $duration = $bookDuration * 60;
                       @endphp
-                      
+
                       @for($time = $start ; $time < $end ; $time += $duration)
-                      <option value="{{date("H:i", $time)}}" {{ ($dataBooking["bookTime"] == date("H:i", $time) ? "selected":"") }}>{{date("H:i", $time)}}</option>
+                      <option value="{{date("H:i", $time)}}" {{ (date("H:i", strtotime($dataBooking["bookStart"])) == date("H:i", $time) ? "selected":"") }}>{{date("H:i", $time)}}</option>
                       @endfor
+                    </select>
+                    <select class="custom-select" id="bookStartMinute" name="bookStartMinute" required>
+                      <option value="" {{ (date("i", strtotime($dataBooking["bookStart"])) == "" ? "selected":"") }}>Minute</option>
+                      <option value="00" {{ (date("i", strtotime($dataBooking["bookStart"])) == '00' ? "selected":"") }}>00</option>
+                      <option value="30" {{ (date("i", strtotime($dataBooking["bookStart"])) == '30' ? "selected":"") }}>30</option>
                     </select>
                   </div>
                 </div>
 
-                <div class="col">
+                <div class="col-xs-12 col-md-3 mb-2">
                   <div class="input-group">
                     <div class="input-group-prepend">
                       <div class="input-group-text">
-                        <i class="fas fa-hourglass-end"></i>
+                        <i class="far fa-calendar"></i>
+                        &nbsp;
+                        End
                       </div>
                     </div>
-                    <select class="custom-select" name="bookDuration" id="bookDuration">
-                      <option value="" {{ ($dataBooking["bookDuration"] == "" ? "selected":"") }}>Set duration</option>
-                      @for($i = 1; $i < 6; $i++)
-                      <option value="{{$i * $bookDuration}}" {{ ($dataBooking["bookDuration"] == $i * $bookDuration ? "selected":"") }}>{{$i * $bookDuration}} minutes</option>
+                    <input type="date" class="form-control" placeholder="dd/mm/yy" id="bookEndDate" name="bookEndDate" value="{{date('Y-m-d',strtotime($dataBooking["bookEnd"]))}}" min="{{$beginDate}}" max="{{$endDate}}" required>
+                  </div>
+                </div>
+
+                <div class="col-xs-12 col-md-3 mb-2">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">
+                        <i class="fas fa-hourglass-half"></i>
+                      </div>
+                    </div>
+
+                    <select class="custom-select" id="bookEndHour" name="bookEndHour" required>
+                      <option value="" {{ ($dataBooking["bookEnd"] == "" ? "selected":"") }}>Hour</option>
+                      @php
+                        $start = strtotime($dataMasterConfigs['bookStart']->configValue);
+                        $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
+                        $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
+                        $duration = $bookDuration * 60;
+                      @endphp
+
+                      @for($time = $start ; $time < $end ; $time += $duration)
+                      <option value="{{date("H", $time)}}" {{ (date("H", strtotime($dataBooking["bookEnd"])) == date("H", $time) ? "selected":"") }}>{{date("H", $time)}}</option>
                       @endfor
+                    </select>
+                    <select class="custom-select" id="bookEndMinute" name="bookEndMinute" required>
+                      <option value="" {{ (date("i", strtotime($dataBooking["bookStart"])) == "" ? "selected":"") }}>Minute</option>
+                      <option value="00" {{ (date("i", strtotime($dataBooking["bookStart"])) == '00' ? "selected":"") }}>00</option>
+                      <option value="30" {{ (date("i", strtotime($dataBooking["bookStart"])) == '30' ? "selected":"") }}>30</option>
                     </select>
                   </div>
                 </div>
+
+              </div>
+
+              <div class="form-row mb-2">
 
                 <div class="col">
                   <div class="input-group">
@@ -197,6 +234,17 @@
                       <input type="file" class="custom-file-input" id="file" name="file" accept="application/pdf,application/zip" required>
                       <label class="custom-file-label" for="file" id="fileLabel">Upload file</label>
                     </div>
+                  </div>
+                </div>
+
+                <div class="col">
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">
+                        <i class="far fa-user"></i>
+                      </div>
+                    </div>
+                    <input type="number" class="form-control" placeholder="Capacity"  name="requestorCapacity" id="capacity" min="1" max="{{floor($dataMasterFacilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}" value="{{ $dataBooking["requestorCapacity"] }}" required>
                   </div>
                 </div>
 
@@ -295,7 +343,7 @@
               <div class="form-row">
                 <div class="col">
                   <div class="input-group">
-                    <a href="#" class="btn btn-primary btn-block" data-toggle="modal" data-target="#summaryModal" id="summaryBtn">Confirm booking</a>
+                    <a href="#" class="btn btn-primary btn-block" id="summaryBtn">Confirm booking</a>
                   </div>
                 </div>
               </div>
@@ -371,18 +419,66 @@
         });
 
         $('#summaryBtn').click(function(){
-          var date = $('#bookDate').val();
-          var time = $('#bookTime').val();
-          var duration = $('#bookDuration').val();
-          var datetime = date+", at "+time+" for "+duration+" minutes";
-          $('#summaryDatetime').text(datetime);
+          if($('#eventName').val()==''){
+            alert('Please Fill Event Name');
+          }else if($('#eventType').val()==''){
+            alert('Please Choose Event Type');
+          }else if($('#requestorPhone').val()==''){
+            alert('Please Fill Phone Number');
+          }else if($('#requestorFacility').val()==''){
+            alert('Please Choose Facult/Unit');
+          }else if($('#bookStartDate').val()==''){
+            alert('Please Start Date');
+          }else if($('#bookStartHour').val()==''){
+            alert('Please Start Hour');
+          }else if($('#bookStartMinute').val()==''){
+            alert('Please Start Minute');
+          }else if($('#bookEndDate').val()==''){
+            alert('Please End Date');
+          }else if($('#bookEndHour').val()==''){
+            alert('Please End Hour');
+          }else if($('#bookEndMinute').val()==''){
+            alert('Please End Minute');
+          }else if(document.getElementById("file").files.length == 0){
+            alert('Please Upload File Document');
+          }else if($('#capacity').val() == 0){
+            alert('Please fill the capacity');
+          }else if($('#capacity').val() > {{floor($dataMasterFacilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}){
+            alert("Capacity can't more than the maximum seats");
+          }else{
+            var bookStart = $('#bookStartDate').val()+' '+$('#bookStartHour').val()+':'+$('#bookStartMinute').val();
+            console.log(bookStart);
+            var bookEnd = $('#bookEndDate').val()+' '+$('#bookEndHour').val()+':'+$('#bookEndMinute').val();
+            var ms = moment(bookEnd,"YYYY-MM-DD HH:mm").diff(moment(bookStart,"YYYY-MM-DD HH:mm"));
+            var d = moment.duration(ms);
+            var s = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
 
-          var equipments = $('#equipments').val().join(", ");
-          $('#summaryEquipment').text(equipments);
+            var datetime = $('#bookStartDate').val()+", at "+$('#bookStartHour').val()+':'+$('#bookStartMinute').val()+" for "+s+" hours";
+            $('#summaryDatetime').text(datetime);
 
-          var request = $('#bookReason').val();
-          $('#summaryRequest').text(request);
+            var equipments = $('#equipments').val().join(", ");
+            $('#summaryEquipment').text(equipments);
+
+            var request = $('#bookReason').val();
+            $('#summaryRequest').text(request);
+
+            $('#summaryModal').modal('show');
+          }
         });
+
+        // $('#summaryBtn').click(function(){
+        //   var date = $('#bookDate').val();
+        //   var time = $('#bookTime').val();
+        //   var duration = $('#bookDuration').val();
+        //   var datetime = date+", at "+time+" for "+duration+" minutes";
+        //   $('#summaryDatetime').text(datetime);
+
+        //   var equipments = $('#equipments').val().join(", ");
+        //   $('#summaryEquipment').text(equipments);
+
+        //   var request = $('#bookReason').val();
+        //   $('#summaryRequest').text(request);
+        // });
 
         $('#bookBtn').click(function(){
           $("#bookingForm").submit();

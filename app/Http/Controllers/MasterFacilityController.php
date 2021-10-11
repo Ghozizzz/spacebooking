@@ -178,6 +178,21 @@ class MasterFacilityController extends Controller
         ->orderBy('type', 'asc')
         ->get();
 
+        $startDate = date('d/m/Y', strtotime($request->bookStartDate));
+        $endDate = date('d/m/Y', strtotime($request->bookEndDate));
+
+        $oriStart = date('Y-m-d', strtotime($request->bookStartDate)).' '.$request->bookStartHour.':'.$request->bookStartMinute;
+        $oriEnd = date('Y-m-d', strtotime($request->bookEndDate)).' '.$request->bookEndHour.':'.$request->bookEndMinute;
+
+        // echo $oriStart.' '.$oriEnd;die();
+        if($oriEnd <= $oriStart){
+            return redirect()->back()->with('warning', "End date can't be before Start date");
+        }
+
+        $request->bookDate = $startDate.' . '.$request->bookStartHour.':'.$request->bookStartMinute.' - '.$endDate.' . '.$request->bookEndHour.':'.$request->bookEndMinute;
+
+        // echo $request->bookDate;die();
+
         $callback = $this->search_room($request);
 
         // print("<pre>".print_r($callback['dataMasterConfig'],true)."</​pre>");
@@ -237,45 +252,30 @@ class MasterFacilityController extends Controller
             $dayNameIndo[] = strtoupper($hari->translatedFormat('l'));
         }
 
-        $monitorClasses  = MonitorClass::whereIn('hari', $dayNameIndo)
-            ->leftJoin('u_master_facility', function($join) {
-                $join->on('u_monitor_classes.facilId', '=', 'u_master_facility.facilId');
-            })
-            ->where('jam','!=',' -')
-            ->get(['u_monitor_classes.*','u_master_facility.id as id_facility']);
+        // $monitorClasses  = MonitorClass::whereIn('hari', $dayNameIndo)
+        //     ->leftJoin('u_master_facility', function($join) {
+        //         $join->on('u_monitor_classes.facilId', '=', 'u_master_facility.facilId');
+        //     })
+        //     ->where('jam','!=',' -')
+        //     ->get(['u_monitor_classes.*','u_master_facility.id as id_facility']);
 
-        $excludeClass = [];
-        foreach ($monitorClasses as $key => $monitorClass) {
-            // $checker         = 0;
-            // $timeExplode = explode("-", $monitorClass->jam);
-            $startTime = Carbon::createFromTimeString("$monitorClass->start");
-            $endTime = Carbon::createFromTimeString("$monitorClass->end");
+        // $excludeClass = [];
+        // foreach ($monitorClasses as $key => $monitorClass) {
+        //     $startTime = Carbon::createFromTimeString("$monitorClass->start");
+        //     $endTime = Carbon::createFromTimeString("$monitorClass->end");
 
-            // echo $startTime.' > '.$bookStart.'<br>';
-
-            // echo $endTime.' < '.$bookEnd;die();
-            if($startTime > $bookStart && $endTime < $bookEnd){
-                if(!empty($monitorClass->id_facility)){
-                    $excludeClass[$key] = $monitorClass->id_facility;
-                }
-            }
-        }
+        //     if($startTime > $bookStart && $endTime < $bookEnd){
+        //         if(!empty($monitorClass->id_facility)){
+        //             $excludeClass[$key] = $monitorClass->id_facility;
+        //         }
+        //     }
+        // }
         // print_r($excludeClass);die();
 
         $dataMasterConfig = MasterConfig::all()->keyBy('configName');
 
         $exclude = [];
         if (!is_null($bookDate)) {
-            // $dataBooking = UserBooking::when($bookEnd, function ($query, $bookEnd) {
-            //     return $query->where('bookEnd','>=', $bookEnd);
-            // }, function ($query) {
-            //     return $query;
-            // })
-            // ->whereIn('approvalStatus', ['accept','pending'])
-            // ->select('masterFacilityId','DB::raw('CASE WHEN Sales >= 1000 THEN 'Good Day' WHEN Sales >= 500 THEN 'OK Day' ELSE 'Bad Day' END')')
-            // ->distinct()
-            // ->get();
-            // $exclude = $dataBooking->pluck('masterFacilityId')->all();
             $dataBooking = DB::select("
                 select masterFacilityId,
                     sum(
@@ -284,7 +284,7 @@ class MasterFacilityController extends Controller
                     WHEN bookStart <= '".$bookStart."' and bookEnd >= '".$bookEnd."' THEN 1
                     ELSE 0 END
                     ) as jml
-                from user_bookings where bookEnd >= '".$bookStart."'
+                from user_bookings where bookEnd >= '".$bookStart."' and user_bookings.approvalStatus in ('pending','accept')
                 group by masterFacilityId
             ");
             foreach ($dataBooking as $key => $value) {
@@ -294,9 +294,7 @@ class MasterFacilityController extends Controller
             }
         }
 
-        $exclude = array_unique(array_merge($exclude,$excludeClass), SORT_REGULAR);
-        // print_r($excludeClass);die();
-
+        // $exclude = array_unique(array_merge($exclude,$excludeClass), SORT_REGULAR);
         $availability = $request->availability;
         $building = $request->building;
         $capacity = (int)$request->capacity;
@@ -332,7 +330,71 @@ class MasterFacilityController extends Controller
         }, function ($query){
             return $query;
         })
+        ->orderByRaw('CAST(capacity AS DECIMAL)')
         ->get();
+
+        //CHECK HARIAN, APAKAH HARI SAAT ITU AVAILABLE
+        foreach ($dataMasterFacility as $key => $v) {
+            $no = 0;
+            $from_date = new \DateTime($bookStart);
+            $to_date = new \DateTime($bookEnd);
+            for ($date = $from_date; $date <= $to_date; $date->modify('+1 day')) {
+                $newDate = $date->format('d-m-Y');
+                $hari = Carbon::createFromFormat('d-m-Y', $newDate)->locale('id'); 
+                $nama_hari = strtoupper($hari->translatedFormat('l'));
+
+                $monitorClasses  = DB::table('u_monitor_classes')
+                    ->selectRaw("*, (CASE WHEN
+                        hari = 'SENIN' THEN 1 WHEN
+                        hari = 'SELASA' THEN 2 WHEN
+                        hari = 'RABU' THEN 3 WHEN
+                        hari = 'KAMIS' THEN 4 WHEN
+                        hari = 'JUMAT' THEN 5 WHEN
+                        hari = 'SABTU' THEN 6 WHEN
+                        hari = 'MINGGU' THEN 7
+                        ELSE 0 END
+                    ) as hari_number")
+                    ->where('facilId', $v->facilId)
+                    ->where('hari', $nama_hari)
+                    ->orderBy('hari_number')
+                    ->get();
+
+                $hari = '';
+                foreach ($monitorClasses as $monitorClass) {
+                    $checker         = 0;
+                    if(empty($monitorClass->start)){
+                        echo $monitorClass->id_table;die();
+                    }
+                    $start_class = $bs.' '.$monitorClass->start.':00';
+                    $end_class = $bs.' '.$monitorClass->end.':00';
+                    $startTime = Carbon::createFromFormat('d-m-Y H:i:s', $start_class)->addDays($no);
+                    $endTime = Carbon::createFromFormat('d-m-Y H:i:s', $end_class)->addDays($no);
+
+                    $hari = $monitorClass->hari;
+                    if ($bookStart >= $startTime && $bookStart < $endTime) {
+                        $checker++;
+                    } else {
+                        if ($bookEnd > $startTime && $bookEnd <= $endTime) {
+                            $checker++;
+                        }else{
+                            if($startTime > $bookStart && $startTime < $bookEnd){
+                                $checker++;
+                            }else{
+                                if($endTime > $bookStart && $endTime < $bookEnd){
+                                    $checker++;
+                                }
+                            }
+                        }
+                    }
+                    if ($checker > 0) {
+                        // echo $v->id.'<br>';
+                        $dataMasterFacility->forget($key);
+                    }
+                }
+                $no++;
+            }
+        }
+        // die();
         // dd(DB::getQueryLog());
         // print_r($dataMasterFacility);die();
 
@@ -418,10 +480,10 @@ class MasterFacilityController extends Controller
     public function timetable(Request $request)
     {
         $facility = MasterFacility::find($request->id);
-        $code = $facility->qrcode;
-        $contents = QrCode::format('png')->size(100)->generate(route('booking.confirm', ['code' => $code]));
-        Storage::put("public/uploads/$code.png", $contents);
-        $url = asset("storage/uploads/$code.png");
+        // $code = $facility->qrcode;
+        // $contents = QrCode::format('png')->size(100)->generate(route('booking.confirm', ['code' => $code]));
+        // Storage::put("public/uploads/$code.png", $contents);
+        // $url = asset("storage/uploads/$code.png");
 
         $en = Carbon::now()->locale('en_ID');
         $now = $en->format('d/m/Y');
@@ -434,58 +496,163 @@ class MasterFacilityController extends Controller
         ->groupBy('term')
         ->first();
 
-        $classes = MonitorClass::where('term', $periods->term)->get();
-        foreach($classes as $class){
-            $classTime = explode('-', $class->jam);
-            $startTime = explode(':', $classTime[0]);
-            $startHour = trim($startTime[0]);
-            $endTime = explode(':', $classTime[1]);
-            $endHour = trim($endTime[0]);
+        if($periods!=null){
+            $classes = MonitorClass::where('term', $periods->term)->get();
+            foreach($classes as $class){
+                $classTime = explode('-', $class->jam);
+                $startTime = explode(':', $classTime[0]);
+                $startHour = trim($startTime[0]);
+                $endTime = explode(':', $classTime[1]);
+                $endHour = trim($endTime[0]);
 
-            $schedule[$class->hari][$startHour] = $class->description;
-            $schedule[$class->hari][$endHour] = $class->description;
+                $schedule[$class->hari][$startHour] = $class->description;
+                $schedule[$class->hari][$endHour] = $class->description;
+            }
         }
 
-
-        $bookings = UserBooking::where('bookDate', '>', $startOfWeek)
-        ->where('bookDate', '<', $endOfWeek)
+        $bookings = UserBooking::where('bookDate', '>=', $startOfWeek)
+        ->where('bookDate', '<=', $endOfWeek)
         ->where('masterFacilityId', $facility->id)
-	->where('approvalStatus', 'accept')
-	->get();
+    	->where('approvalStatus', 'accept')
+        ->orderBy('bookDate','asc')
+    	->get();
 
         setlocale(LC_TIME, 'id_ID');
         Carbon::setLocale('id');
-	$schedule = array();
+    	$schedule = array();
+        // echo $startOfWeek.' dan '.$endOfWeek.'<br>';
         foreach($bookings as $booking){
+            // echo $booking->eventName;
             $startTime = explode(':', $booking->bookTime);
             $startHour = trim($startTime[0]);
+            // echo $startHour;die();
+            // $startHour = $booking->bookDate;
 
             $day = strtoupper($booking->bookDate->translatedFormat('l'));
 
             $endTime = Carbon::createFromFormat('H:i', $booking->bookTime)->addMinutes($booking->bookDuration);
             $endHour = $endTime->format('H');
 
-            $loopTime = Carbon::createFromFormat('H', $startHour);
-            while($loopTime->lte($endTime)){
+            $loopTime = Carbon::createFromFormat('Y-m-d H:i:s', $booking->bookStart);
+            // echo $loopTime;die();
+            // $i=0;
+            do{
                 $hour = $loopTime->format('H');
 
-                $schedule[$day][$hour] = $booking->eventName;
+                $day = strtoupper($loopTime->translatedFormat('l'));
+                if($loopTime->format('Y-m-d') <= $endOfWeek && $loopTime->format('Y-m-d H:i:s') < $booking->bookEnd){
+                    $schedule[$day][$hour] = $booking->eventName;
+
+                    // echo $day.' '.$hour.' '.$schedule[$day][$hour].'<br>';
+                }
                 $loopTime = $loopTime->addMinutes(60);
-            }
+                // $i++;
+            }while($loopTime->lte($booking->bookEnd));
         }
+        // die();
 
         $startOfWeek = $en->startOfWeek()->format('d/m/Y');
         $endOfWeek = $en->endOfWeek()->format('d/m/Y');
 
         return view('masterFacility.timetable', [
             'facility' => $facility,
-            'url' => $url,
+            // 'url' => $url,
             'startOfWeek' => $startOfWeek,
             'endOfWeek' => $endOfWeek,
             'now' => $now,
             'schedule' => $schedule,
         ]);
     }
+
+    // public function timetable(Request $request)
+    // {
+    //     $facility = MasterFacility::find($request->id);
+    //     $code = $facility->qrcode;
+    //     $contents = QrCode::format('png')->size(100)->generate(route('booking.confirm', ['code' => $code]));
+    //     Storage::put("public/uploads/$code.png", $contents);
+    //     $url = asset("storage/uploads/$code.png");
+
+    //     $en = Carbon::now()->locale('en_ID');
+    //     $now = $en->format('d/m/Y');
+    //     $startOfWeek = $en->startOfWeek()->format('Y-m-d');
+    //     $endOfWeek = $en->endOfWeek()->format('Y-m-d');
+
+    //     $periods = MasterPeriod::select('term')
+    //     ->where('beginDate', '<', $startOfWeek)
+    //     ->where('endDate', '>', $endOfWeek)
+    //     ->groupBy('term')
+    //     ->first();
+
+    //     $classes = MonitorClass::where('term', $periods->term)->get();
+    //     foreach($classes as $class){
+    //         $classTime = explode('-', $class->jam);
+    //         $startTime = explode(':', $classTime[0]);
+    //         $startHour = trim($startTime[0]);
+    //         $endTime = explode(':', $classTime[1]);
+    //         $endHour = trim($endTime[0]);
+
+    //         $schedule[$class->hari][$startHour] = $class->description;
+    //         $schedule[$class->hari][$endHour] = $class->description;
+    //     }
+
+
+    // //     $bookings = UserBooking::where('bookDate', '>', $startOfWeek)
+    // //     ->where('bookDate', '<', $endOfWeek)
+    // //     ->where('masterFacilityId', $facility->id)
+    // // ->where('approvalStatus', 'accept')
+    // // ->get();
+
+    //         $bookings = UserBooking::where('approvalStatus','accept')
+    //                         ->where('masterFacilityId', $request->id)
+    //                         ->get();
+
+    //     setlocale(LC_TIME, 'id_ID');
+    //     Carbon::setLocale('id');
+    //     $schedule = array();
+    //     foreach($bookings as $booking){
+    //         // $startTime = explode(':', $booking->bookTime);
+    //         $startHour = $booking->bookStart;
+
+    //         $day = strtoupper($booking->bookDate->translatedFormat('l'));
+
+    //         $endTime = Carbon::createFromFormat('H:i', $booking->bookTime)->addMinutes($booking->bookDuration);
+    //         $endHour = $booking->bookEnd;
+
+    //         $from_date = new \DateTime($startHour);
+    //         $to_date = new \DateTime($endHour);
+
+    //         // $loopTime = Carbon::createFromFormat('H', $startHour);
+    //         // while($loopTime->lte($endTime)){
+    //         //     $hour = $loopTime->format('H');
+
+    //         //     $schedule[$day][$hour] = $booking->eventName;
+    //         //     $loopTime = $loopTime->addMinutes(60);
+    //         // }
+
+    //         for ($date = $from_date; $date <= $to_date; $date->modify('+1 hour')) {
+    //             // $dayName[] = strtolower($date->format('l'));
+    //             $newDate = $date->format('d-m-Y');
+    //             $day = $date->format('l'); 
+    //             $hour = $date->format('H');
+    //             $schedule[$day][$hour] = $booking->eventName;
+    //             echo $day.' '.$hour.'<br>';
+    //         }
+    //     }
+    //     die();
+
+
+    //     $startOfWeek = $en->startOfWeek()->format('d/m/Y');
+    //     $endOfWeek = $en->endOfWeek()->format('d/m/Y');
+
+    //     return view('masterFacility.timetable', [
+    //         'facility' => $facility,
+    //         'url' => $url,
+    //         'startOfWeek' => $startOfWeek,
+    //         'endOfWeek' => $endOfWeek,
+    //         'now' => $now,
+    //         'schedule' => $schedule,
+    //     ]);
+    // }
 
     /**
     * @return \Illuminate\Support\Collection

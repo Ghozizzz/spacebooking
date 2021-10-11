@@ -23,6 +23,7 @@ class UserBooking extends Model
         'requestorName',
         'requestorPhone',
         'requestorFacility',
+        'requestorCapacity',
         'equipments',
         'approverId',
         'approvalStatus',

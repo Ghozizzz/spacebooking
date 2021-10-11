@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\UserBooking;
 use App\Models\MasterFacility;
+use App\Models\MasterConfig;
+use App\Models\MonitorClass;
+use App\Models\User;
 use App\Mail\Booking;
 use App\Mail\NewBooking;
 use App\Mail\DeclineBooking;
 use App\Mail\CancelBooking;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\Models\MonitorClass;
 use App\TokenStore\TokenCache;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
@@ -56,18 +58,158 @@ class UserBookingController extends Controller
                     ->orderBy('id', 'desc')
                     ->get();
             }
+
+            //COUNT PENDING
+            $pending_count = UserBooking::whereIn('approvalStatus', ['pending', 'revise'])
+                ->whereIn('masterFacilityId', session('facilities'))
+                ->has('facilities')
+                ->orderBy('id', 'desc')
+                ->count();
+
+            $decline_count = UserBooking::where('approvalStatus', 'decline')
+                ->where('updated_at', '>=', Carbon::now()->subDays(1))
+                ->whereIn('masterFacilityId', session('facilities'))
+                ->has('facilities')
+                ->orderBy('id', 'desc')
+                ->count();
+
+            $accept_count = UserBooking::where('approvalStatus', 'accept')
+                ->where('updated_at', '>=', Carbon::now()->subDays(1))
+                ->whereIn('masterFacilityId', session('facilities'))
+                ->has('facilities')
+                ->orderBy('id', 'desc')
+                ->count();
+
+            $cancel_count = UserBooking::where('approvalStatus', 'cancel')
+                ->where('updated_at', '>=', Carbon::now()->subDays(1))
+                ->whereIn('masterFacilityId', session('facilities'))
+                ->has('facilities')
+                ->orderBy('id', 'desc')
+                ->count();
         } else {
+            //COUNT PENDING
+            if(session('role') == 2){
+                $pending_count = UserBooking::where(function($query){
+                        $query->where('approvalStatus', 'pending')
+                        ->orWhere('approvalStatus', 'revise');
+                    })->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $decline_count = UserBooking::where('approvalStatus','decline')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $accept_count = UserBooking::where('approvalStatus','accept')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $cancel_count = UserBooking::where('approvalStatus','cancel')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+            }elseif(session('role') == 3){
+                $pending_count = UserBooking::where(function($query){
+                        $query->where('approvalStatus', 'pending')
+                        ->orWhere('approvalStatus', 'revise');
+                    })->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                    ->where('u_type', 1)
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $decline_count = UserBooking::where('approvalStatus','decline')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                    ->where('u_type', 1)
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $accept_count = UserBooking::where('approvalStatus','accept')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                    ->where('u_type', 1)
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+
+                $cancel_count = UserBooking::where('approvalStatus','cancel')
+                    ->leftJoin('u_users', function($join) {
+                      $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                    })->has('facilities')
+                    ->where('user_bookings.updated_at', '>=', Carbon::now()->subDays(1))
+                    ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                    ->where('u_type', 1)
+                    ->orderBy('user_bookings.id', 'desc')
+                    ->count();
+            }
 
             if ($status == 'decline') {
-                $booking = UserBooking::where('approvalStatus', 'decline')
-                    ->has('facilities')
-                    ->orderBy('id', 'desc')
-                    ->get();
+                // $booking = UserBooking::where('approvalStatus', 'decline')
+                //     ->has('facilities')
+                //     ->orderBy('id', 'desc')
+                //     ->get();
+                if(session('role') == 2){
+                    $booking = UserBooking::where('approvalStatus','decline')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        // ->where('u_type', 0)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }elseif(session('role') == 3){
+                    $booking = UserBooking::where('approvalStatus','decline')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                        ->where('u_type', 1)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }
             } elseif ($status == 'cancel') {
-                $booking = UserBooking::where('approvalStatus', 'cancel')
-                    ->has('facilities')
-                    ->orderBy('id', 'desc')
-                    ->get();
+                // $booking = UserBooking::where('approvalStatus', 'cancel')
+                //     ->has('facilities')
+                //     ->orderBy('id', 'desc')
+                //     ->get();
+                if(session('role') == 2){
+                    $booking = UserBooking::where('approvalStatus','cancel')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        // ->where('u_type', 0)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }elseif(session('role') == 3){
+                    $booking = UserBooking::where('approvalStatus','cancel')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                        ->where('u_type', 1)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }
             } elseif ($status == 'pending' || $status == 'revise' || $status == "") {
                 if(session('role') == 2){
                     $booking = UserBooking::where(function($query){
@@ -76,7 +218,7 @@ class UserBookingController extends Controller
                         })->leftJoin('u_users', function($join) {
                           $join->on('user_bookings.requestorId', '=', 'u_users.email');
                         })->has('facilities')
-                        ->where('u_type', 0)
+                        // ->where('u_type', 0)
                         ->orderBy('user_bookings.id', 'desc')
                         ->get(['user_bookings.*']);
                 }elseif(session('role') == 3){
@@ -92,14 +234,39 @@ class UserBookingController extends Controller
                         ->get(['user_bookings.*']);
                 }
             } elseif ($status == 'accept') {
-                $booking = UserBooking::where('approvalStatus', 'accept')
-                    ->has('facilities')
-                    ->orderBy('id', 'desc')
-                    ->get();
+                // $booking = UserBooking::where('approvalStatus', 'accept')
+                //     ->has('facilities')
+                //     ->orderBy('id', 'desc')
+                //     ->get();
+                if(session('role') == 2){
+                    $booking = UserBooking::where('approvalStatus','accept')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        // ->where('u_type', 0)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }elseif(session('role') == 3){
+                    $booking = UserBooking::where('approvalStatus','accept')
+                        ->leftJoin('u_users', function($join) {
+                          $join->on('user_bookings.requestorId', '=', 'u_users.email');
+                        })->has('facilities')
+                        ->whereIn('requestorFacility', explode(';',session('faculty_value')))
+                        ->where('u_type', 1)
+                        ->orderBy('user_bookings.id', 'desc')
+                        ->get(['user_bookings.*']);
+                }
             }
         }
+        $dataMasterConfigs['facilityCapacity'] = MasterConfig::all()->keyBy('configName')->get('facilityCapacity');
 
-        return view('bookingManagement.index', ['booking' => $booking]);
+        return view('bookingManagement.index', [
+            'booking' => $booking, 
+            'pending_count' => $pending_count,
+            'decline_count' => $decline_count,
+            'accept_count' => $accept_count,
+            'cancel_count' => $cancel_count,
+            'dataMasterConfigs' => $dataMasterConfigs]);
     }
 
     public function myBooking()
@@ -134,22 +301,44 @@ class UserBookingController extends Controller
         //
         $validatedData = $request->validate([
             'masterFacilityId' => 'required',
-            'bookDate'         => 'required',
+            'bookStartDate'    => 'required',
+            'bookStartHour'    => 'required',
+            'bookStartMinute'  => 'required',
+            'bookEndDate'      => 'required',
+            'bookEndHour'      => 'required',
+            'bookEndMinute'    => 'required',
             // 'bookTime'         => 'required',
             // 'bookDuration'     => 'required',
             // 'bookReason'       => 'required',
             'eventName'        => 'required',
             'eventType'        => 'required',
+            'requestorCapacity'=> 'required',
             // 'file'             => 'required|mimes:pdf,zip|max:2048',
             'requestorPhone'   => 'required',
             'requestorFacility' => 'required',
         ]);
+
+
+        $startDate = date('d/m/Y', strtotime($request->bookStartDate));
+        $endDate = date('d/m/Y', strtotime($request->bookEndDate));
+
+        $oriStart = date('Y-m-d', strtotime($request->bookStartDate)).' '.$request->bookStartHour.':'.$request->bookStartMinute;
+        $oriEnd = date('Y-m-d', strtotime($request->bookEndDate)).' '.$request->bookEndHour.':'.$request->bookEndMinute;
+
+        // echo $oriStart.' '.$oriEnd;die();
+        if($oriEnd <= $oriStart){
+            return redirect()->back()->with('warning', "End date can't be before Start date");
+        }
+
+        $request->bookDate = $startDate.' . '.$request->bookStartHour.':'.$request->bookStartMinute.' - '.$endDate.' . '.$request->bookEndHour.':'.$request->bookEndMinute;
 
         $callback = $this->check_booking($request);
 
         if($callback['checker'] > 0){
             return redirect()->back()->with('warning', $callback['message']);
         }
+
+        // print_r($callback);die();
         
         $bookDate = $request->bookDate;
         $bD = explode('-', $bookDate);
@@ -175,6 +364,9 @@ class UserBookingController extends Controller
         $user = $this->loadViewData();
         $book['requestorName'] = $user['userName'];
         $book['requestorId'] = $user['userEmail'];
+        $book['requestorCapacity'] = $request->requestorCapacity;
+
+        // echo $book['requestorCapacity'];die();
 
         $book['equipments'] = json_encode($request->equipments);
 
@@ -183,6 +375,7 @@ class UserBookingController extends Controller
         $booking = new UserBooking;
         $booking->fill($book);
         $booking->save();
+        // die();
 
         $originalFileName = time() . '-' . $booking->id . '-' . $pathName->getClientOriginalName();
 
@@ -223,7 +416,13 @@ class UserBookingController extends Controller
         $booking->file = $arrayData['id'];
         $booking->save();
 
-        Mail::to("room.host@uph.ac.id")->send(new NewBooking($booking));
+        $loop_faculty = User::where('role',3)->WhereRaw('faculty_value like "%'.$booking->requestorFacility.'%"')->get();
+        foreach ($loop_faculty as $value) {
+            if($value->email){
+                Mail::to($value->email)->send(new NewBooking($booking));
+            }
+        }
+        Mail::to("spacebooking@uph.edu")->send(new NewBooking($booking));
 
         return redirect()->route('home.index');
     }
@@ -242,45 +441,70 @@ class UserBookingController extends Controller
         $bend = explode('.', $bD[1]);
 
         $bs = str_replace("/", '-', $bstart[0]);
-        $bookStart = date('Y-m-d H:i',strtotime($bs.' '.$bstart[1]));
+        $bookStart = date('Y-m-d H:i:s',strtotime($bs.' '.$bstart[1].''));
 
         $be = str_replace("/", '-', $bend[0]);
-        $bookEnd = date('Y-m-d H:i',strtotime($be.' '.$bend[1]));
+        $bookEnd = date('Y-m-d H:i:s',strtotime($be.' '.$bend[1]));
 
         $dayName = '';
         $no = 0;
-        $startBookTime = new \DateTime($bookStart);
-        $endBookTime = new \DateTime($bookEnd);
+        $startBookTime = new \DateTime($bs);
+        $endBookTime = new \DateTime($be);
+        // echo $startBookTime.' |'.$endBookTime;die();
 
         $dayName = [];
         for ($date = $startBookTime; $date <= $endBookTime; $date->modify('+1 day')) {
             $newDate = $date->format('d-m-Y');
             $hari = Carbon::createFromFormat('d-m-Y', $newDate)->locale('id'); 
-            $dayName[] = strtoupper($hari->translatedFormat('l'));
-        }
+            $dayName[$no] = strtoupper($hari->translatedFormat('l'));
 
-        $monitorClasses  = MonitorClass::where('facilId', $facilId)
-                            // ->where('hari', $dayName)->get();
-                            ->whereIn('hari', $dayName)->get();
+            $monitorClasses  = DB::table('u_monitor_classes')
+                ->selectRaw("*, (CASE WHEN
+                    hari = 'SENIN' THEN 1 WHEN
+                    hari = 'SELASA' THEN 2 WHEN
+                    hari = 'RABU' THEN 3 WHEN
+                    hari = 'KAMIS' THEN 4 WHEN
+                    hari = 'JUMAT' THEN 5 WHEN
+                    hari = 'SABTU' THEN 6 WHEN
+                    hari = 'MINGGU' THEN 7
+                    ELSE 0 END
+                ) as hari_number")
+                ->where('facilId', $facilId)
+                ->where('hari', $dayName[$no])
+                ->orderBy('hari_number')
+                ->get();
 
-        foreach ($monitorClasses as $monitorClass) {
-            $checker         = 0;
-            // $timeExplode = explode("-", $monitorClass->jam);
-            $startTime = Carbon::createFromTimeString("$monitorClass->start");
-            $endTime = Carbon::createFromTimeString("$monitorClass->end");
-            if ($startBookTime >= $startTime && $startBookTime < $endTime) {
-                $checker++;
-            } else {
-                if ($endBookTime > $startTime && $endBookTime <= $endTime) {
+            $hari = '';
+            foreach ($monitorClasses as $monitorClass) {
+                $checker         = 0;
+                $start_class = $bs.' '.$monitorClass->start.':00';
+                $end_class = $bs.' '.$monitorClass->end.':00';
+                $startTime = Carbon::createFromFormat('d-m-Y H:i:s', $start_class)->addDays($no);
+                $endTime = Carbon::createFromFormat('d-m-Y H:i:s', $end_class)->addDays($no);
+
+                $hari = $monitorClass->hari;
+                if ($bookStart >= $startTime && $bookStart < $endTime) {
                     $checker++;
+                } else {
+                    if ($bookEnd > $startTime && $bookEnd <= $endTime) {
+                        $checker++;
+                    }else{
+                        if($startTime > $bookStart && $startTime < $bookEnd){
+                            $checker++;
+                        }else{
+                            if($endTime > $bookStart && $endTime < $bookEnd){
+                                $checker++;
+                            }
+                        }
+                    }
+                }
+                if ($checker > 0) {
+                    $data['checker'] = $checker;
+                    $data['message'] = 'The room is booked by another user classes';
+                    return $data;
                 }
             }
-            if ($checker > 0) {
-                // return redirect()->back()->with('warning', "The room is booked by another user classes");
-                $data['checker'] = $checker;
-                $data['message'] = 'The room is booked by another user classes';
-                return $data;
-            }
+            $no++;
         }
 
         $userBookings = collect(DB::select("
@@ -292,7 +516,7 @@ class UserBookingController extends Controller
                     ELSE 0 END
                 ) as jml
             from user_bookings where bookEnd >= '".$bookStart."'
-            and masterFacilityId = ".$request->masterFacilityId."
+            and masterFacilityId = ".$request->masterFacilityId." and approvalStatus in ('pending','accept')
             group by masterFacilityId
         "))->first();
 
@@ -337,11 +561,11 @@ class UserBookingController extends Controller
             }
             if ($checker > 0) {
                 $userBooking->approvalStatus = "decline";
-                $userBooking->approvalReason = "[DECLINED] The room is booked by another user";
+                $userBooking->approvalReason = "[DECLINED] The room is booked by daily class schedule";
                 $userBooking->approverId = $user['userEmail'];
                 $userBooking->approvedOn = Carbon::now();
                 $userBooking->save();
-                return redirect()->back()->with('warning', "The room is booked by another user");
+                return redirect()->back()->with('warning', "The room is booked by daily class schedule");
             }
         }
 
@@ -396,8 +620,9 @@ class UserBookingController extends Controller
         $userBooking->approvedOn = Carbon::now();
         $userBooking->save();
 
-        // Mail::to($userBooking->requestorId)->send(new Booking($userBooking));
-        new Booking($userBooking);
+        Mail::to($userBooking->requestorId)->send(new Booking($userBooking));
+        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
+        // new Booking($userBooking);
 
         return redirect()->back();
     }
@@ -414,6 +639,7 @@ class UserBookingController extends Controller
         $userBooking->save();
 
         // Mail::to($userBooking->requestorId)->send(new DeclineBooking($userBooking));
+        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
 
         return redirect()->back();
     }
@@ -430,6 +656,7 @@ class UserBookingController extends Controller
         }
 
         // Mail::to($userBooking->requestorId)->send(new CancelBooking($userBooking));
+        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
 
         return redirect()->back();
     }
@@ -452,16 +679,55 @@ class UserBookingController extends Controller
     {
         //
         $validatedData = $request->validate([
-            'id'               => 'required',
             'masterFacilityId' => 'required',
-            'bookDate'         => 'required',
-            'bookTime'         => 'required',
-            'bookDuration'     => 'required',
+            'bookStartDate'    => 'required',
+            'bookStartHour'    => 'required',
+            'bookStartMinute'  => 'required',
+            'bookEndDate'      => 'required',
+            'bookEndHour'      => 'required',
+            'bookEndMinute'    => 'required',
+            // 'bookTime'         => 'required',
+            // 'bookDuration'     => 'required',
+            // 'bookReason'       => 'required',
             'eventName'        => 'required',
             'eventType'        => 'required',
+            'requestorCapacity'=> 'required',
+            // 'file'             => 'required|mimes:pdf,zip|max:2048',
             'requestorPhone'   => 'required',
             'requestorFacility' => 'required',
         ]);
+
+        $startDate = date('d/m/Y', strtotime($request->bookStartDate));
+        $endDate = date('d/m/Y', strtotime($request->bookEndDate));
+
+        $oriStart = date('Y-m-d', strtotime($request->bookStartDate)).' '.$request->bookStartHour.':'.$request->bookStartMinute;
+        $oriEnd = date('Y-m-d', strtotime($request->bookEndDate)).' '.$request->bookEndHour.':'.$request->bookEndMinute;
+
+        // echo $oriStart.' '.$oriEnd;die();
+        if($oriEnd <= $oriStart){
+            return redirect()->back()->with('warning', "End date can't be before Start date");
+        }
+
+        $request->bookDate = $startDate.' . '.$request->bookStartHour.':'.$request->bookStartMinute.' - '.$endDate.' . '.$request->bookEndHour.':'.$request->bookEndMinute;
+
+        $bookDate = $request->bookDate;
+        $bD = explode('-', $bookDate);
+
+        $bstart = explode('.', $bD[0]);
+        $bend = explode('.', $bD[1]);
+
+        $bs = str_replace("/", '-', $bstart[0]);
+        $bookStart = date('Y-m-d H:i',strtotime($bs.' '.$bstart[1]));
+
+        $be = str_replace("/", '-', $bend[0]);
+        $bookEnd = date('Y-m-d H:i',strtotime($be.' '.$bend[1]));
+
+        $book                 = $request->all();
+        $book['bookDate']     = date('Y-m-d', strtotime($bs));
+        $book['bookTime']     = str_replace(' ', '', $bstart[1]);
+        $book['bookDuration'] = Carbon::parse($bookEnd)->diffInMinutes(Carbon::parse($bookStart));
+        $book['bookStart']    = date('Y-m-d H:i:s',strtotime($bookStart));
+        $book['bookEnd']      = date('Y-m-d H:i:s',strtotime($bookEnd));
 
         $book = $request->all();
 
@@ -470,6 +736,7 @@ class UserBookingController extends Controller
         $user = $this->loadViewData();
         $book['requestorName'] = $user['userName'];
         $book['requestorId'] = $user['userEmail'];
+        $book['requestorCapacity'] = $request->requestorCapacity;
 
         $book['equipments'] = json_encode($request->equipments);
 

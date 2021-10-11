@@ -162,6 +162,10 @@
                                                     {{$item->bookStart.' until '.$item->bookEnd}}
                               					          </p>
                                                   <p>
+                                                  <strong>Booking End:</strong>
+                                                  {{date('d M Y H:i',strtotime($item->bookEnd))}}
+                                                  </p>
+                                                  <p>
                                                   <strong>Equipments:</strong>
                                                   @if(!is_null($item->equipments) && $item->equipments !== 'null')
                                                       @php
@@ -337,6 +341,10 @@
                                                     <p>
                                                     <strong>Booking time:</strong>
                                                     {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}} minutes
+                                                    </p>
+                                                    <p>
+                                                    <strong>Booking End:</strong>
+                                                    {{date('d M Y H:i',strtotime($item->bookEnd))}}
                                                     </p>
                                                     <p>
                                                     <strong>Equipments:</strong>

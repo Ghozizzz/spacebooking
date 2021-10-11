@@ -39,16 +39,21 @@
                     <a href="{{ route("home.booking.index")}}"
                         class="list-group-item list-group-item-action {{ Request::is('*booking') ? 'active' : '' }}">
                         Pending requests
+                        <span class="badge badge-danger">{{$pending_count}}</span>
                     </a>
                     <a href="{{ route("home.booking.status" , [ 'status' => 'accept' ]) }}"
                         class="list-group-item list-group-item-action {{ Request::is('*booking/status/accept') ? 'active' : '' }}">Accepted
-                        requests</a>
+                        requests
+                        <span class="badge badge-danger">{{$accept_count}}</span></a>
                     <a href="{{ route("home.booking.status" , [ 'status' => 'decline' ]) }}"
                         class="list-group-item list-group-item-action {{ Request::is('*booking/status/decline') ? 'active' : '' }}">Declined
-                        requests</a>
+                        requests
+                        <span class="badge badge-danger">{{$decline_count}}</span></a>
                     <a href="{{ route("home.booking.status" , [ 'status' => 'cancel' ]) }}"
                         class="list-group-item list-group-item-action {{ Request::is('*booking/status/cancel') ? 'active' : '' }}">Cancelled
-                        requests</a>
+                        requests
+                        <span class="badge badge-danger">{{$cancel_count}}</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -69,6 +74,7 @@
                 <thead>
                     <tr>
                         <th scope="col">#</th>
+                        <th scope="col">ID</th>
                         <th scope="col">Room</th>
                         <th scope="col">Status</th>
                         <th scope="col">Requested by</th>
@@ -95,14 +101,14 @@
                     @endphp
                     <tr>
                         <th>{{$key+1}}</th>
+                        <td>{{$item->id}}</td>
                         <th scope="row">{{$item->facilities->facilId}}</th>
                         <td>{!!$status!!}</td>
                         <td>{{$item->requestorName}}</td>
                         <td>{{$item->requestorFacility}}</td>
                         <td>{{ empty($item->eventName) ? '-' : $item->eventName  }} </td>
                         <td>{{ empty($item->eventType) ? '-' : $item->eventType  }} </td>
-                        <td>{{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}}
-                            minutes</td>
+                        <td>{{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$hours = intdiv($item->bookDuration, 60).' hours and '. ($item->bookDuration % 60).' minutes'}}</td>
                         @if($item->approvalStatus == 'pending')
                             <td>
                                 <a href="#accept" class="btn btn-success btn-sm approval-btn accept-btn" data-toggle="modal"
@@ -146,9 +152,16 @@
                                                         {{$item->facilities->facilId}}
                                                     </p>
                                                     <p>
+                                                        <strong>Booked room capacity:</strong>
+                                                        {{floor($item->facilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}
+                                                    </p>
+                                                    <p>
                                                         <strong>Booking time:</strong>
-                                                        {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}}
-                                                        minutes
+                                                        {{$item->bookDate->format('d M Y')}} at {{$item->bookTime}} <b>until</b> {{date('d M Y',strtotime($item->bookEnd))}} at {{date('H:i',strtotime($item->bookEnd))}} <b>for</b> {{$hours = intdiv($item->bookDuration, 60).' hours and '. ($item->bookDuration % 60).' minutes'}}
+                                                    </p>
+                                                    <p>
+                                                    <strong>Booking End:</strong>
+                                                    {{date('d M Y H:i',strtotime($item->bookEnd))}}
                                                     </p>
                                                     <p>
                                                         <strong>Equipments:</strong>
@@ -165,6 +178,10 @@
                                                     <p>
                                                         <strong>Additional requests:</strong>
                                                         {{$item->bookReason}}
+                                                    </p>
+                                                    <p>
+                                                        <strong>Requestor Capacity:</strong>
+                                                        {{$item->requestorCapacity}}
                                                     </p>
                                                     <hr />
                                                     <p>
@@ -251,9 +268,16 @@
                                                     {{$item->facilities->facilId}}
                                                 </p>
                                                 <p>
+                                                    <strong>Booked room capacity:</strong>
+                                                    {{floor($item->facilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}
+                                                </p>
+                                                <p>
                                                     <strong>Booking time:</strong>
-                                                    {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}}
-                                                    minutes
+                                                    {{$item->bookDate->format('d M Y')}} at {{$item->bookTime}} <b>until</b> {{date('d M Y',strtotime($item->bookEnd))}} at {{date('H:i',strtotime($item->bookEnd))}} <b>for</b> {{$hours = intdiv($item->bookDuration, 60).' hours and '. ($item->bookDuration % 60).' minutes'}}
+                                                </p>
+                                                <p>
+                                                <strong>Booking End:</strong>
+                                                {{date('d M Y H:i',strtotime($item->bookEnd))}}
                                                 </p>
                                                 <p>
                                                     <strong>Equipments:</strong>
@@ -270,6 +294,10 @@
                                                 <p>
                                                     <strong>Additional requests:</strong>
                                                     {{$item->bookReason}}
+                                                </p>
+                                                <p>
+                                                    <strong>Requestor Capacity:</strong>
+                                                    {{$item->requestorCapacity}}
                                                 </p>
                                                 <hr />
                                                 <p>
@@ -359,9 +387,16 @@
                                                     {{$item->facilities->facilId}}
                                                 </p>
                                                 <p>
+                                                    <strong>Booked room capacity:</strong>
+                                                    {{floor($item->facilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}
+                                                </p>
+                                                <p>
                                                     <strong>Booking time:</strong>
-                                                    {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}}
-                                                    minutes
+                                                    {{$item->bookDate->format('d M Y')}} at {{$item->bookTime}} <b>until</b> {{date('d M Y',strtotime($item->bookEnd))}} at {{date('H:i',strtotime($item->bookEnd))}} <b>for</b> {{$hours = intdiv($item->bookDuration, 60).' hours and '. ($item->bookDuration % 60).' minutes'}}
+                                                </p>
+                                                <p>
+                                                <strong>Booking End:</strong>
+                                                {{date('d M Y H:i',strtotime($item->bookEnd))}}
                                                 </p>
                                                 <p>
                                                     <strong>Equipments:</strong>
@@ -378,6 +413,10 @@
                                                 <p>
                                                     <strong>Additional requests:</strong>
                                                     {{$item->bookReason}}
+                                                </p>
+                                                <p>
+                                                    <strong>Requestor Capacity:</strong>
+                                                    {{$item->requestorCapacity}}
                                                 </p>
                                                 <hr />
                                                 <p>
@@ -467,9 +506,16 @@
                                                     {{$item->facilities->facilId}}
                                                 </p>
                                                 <p>
+                                                    <strong>Booked room capacity:</strong>
+                                                    {{floor($item->facilities->capacity*$dataMasterConfigs['facilityCapacity']->configValue/100)}}
+                                                </p>
+                                                <p>
                                                     <strong>Booking time:</strong>
-                                                    {{$item->bookDate->format('d M Y')}} from {{$item->bookTime}} for {{$item->bookDuration}}
-                                                    minutes
+                                                    {{$item->bookDate->format('d M Y')}} at {{$item->bookTime}} <b>until</b> {{date('d M Y',strtotime($item->bookEnd))}} at {{date('H:i',strtotime($item->bookEnd))}} <b>for</b> {{$hours = intdiv($item->bookDuration, 60).' hours and '. ($item->bookDuration % 60).' minutes'}}
+                                                </p>
+                                                <p>
+                                                <strong>Booking End:</strong>
+                                                {{date('d M Y H:i',strtotime($item->bookEnd))}}
                                                 </p>
                                                 <p>
                                                     <strong>Equipments:</strong>
@@ -486,6 +532,10 @@
                                                 <p>
                                                     <strong>Additional requests:</strong>
                                                     {{$item->bookReason}}
+                                                </p>
+                                                <p>
+                                                    <strong>Requestor Capacity:</strong>
+                                                    {{$item->requestorCapacity}}
                                                 </p>
                                                 <hr />
                                                 <p>

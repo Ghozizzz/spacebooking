@@ -19,13 +19,21 @@
           <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Search</h6>
           </div>
+
+          @if (\Session::has('warning'))
+            <div class="alert alert-danger">
+                <ul class="my-0">
+                    <li>{!! \Session::get('warning') !!}</li>
+                </ul>
+            </div>
+          @endif
           <!-- Card Body -->
           <form action="{{route('home.master.query')}}" method="post">
             @csrf
             <div class="card-body">
               <div class="info-area px-1" style="overflow-y:auto">
                   <div class="form-row">
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-4">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
@@ -35,39 +43,24 @@
                         <select class="custom-select" name="building">
                           <option value="" selected>Choose a room type</option>
                           @foreach($building as $item)
-                            <option value="{{$item->building}}">{{$item->building}}</option>
+                            <option value="{{$item->building}}" {{ (old("building") == $item->building ? "selected":"") }}>{{$item->building}}</option>
                           @endforeach
                         </select>
                       </div>
                     </div>
 
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-4">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
                             <i class="far fa-user"></i>
                           </div>
                         </div>
-                        <input type="number" class="form-control" placeholder="Capacity"  name="capacity">
+                        <input type="number" class="form-control" placeholder="Capacity"  name="capacity" value="{{ old("capacity") }}" required>
                       </div>
                     </div>
 
-                  </div>
-
-                  <div class="form-row my-2">
-                    <div class="col-xs-12 col-md-6">
-                      <div class="input-group">
-                        <div class="input-group-prepend">
-                          <div class="input-group-text">
-                            <i class="far fa-calendar"></i>
-                          </div>
-                        </div>
-                      {{-- <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookDate" value="{{old('bookDate')}}" min="{{$beginDate}}" max="{{$endDate}}" required> --}}
-                        <input type="text" class="form-control" name="bookDate" value="{{old('bookDate')}}" />
-                      </div>
-                    </div>
-
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-4">
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <div class="input-group-text">
@@ -82,6 +75,93 @@
                       </div>
                     </div>
 
+                  </div>
+
+                  <div class="form-row my-2">
+                    <div class="col-xs-12 col-md-3">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <i class="far fa-calendar"></i>
+                            &nbsp;
+                            Start
+                          </div>
+                        </div>
+                        <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookStartDate" value="{{old('bookStartDate')}}" min="{{$beginDate}}" max="{{$endDate}}" required>
+                        {{-- <input type="text" class="form-control" name="bookDate" value="{{old('bookDate')}}" /> --}}
+                      </div>
+                    </div>
+
+                    <div class="col-xs-12 col-md-3">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <i class="fas fa-hourglass-half"></i>
+                          </div>
+                        </div>
+
+                        <select class="custom-select" name="bookStartHour" required>
+                          <option value="" {{ (old("bookStartHour") == "" ? "selected":"") }}>Hour</option>
+                          @php
+                            $start = strtotime($dataMasterConfigs['bookStart']->configValue);
+                            $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
+                            $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
+                            $duration = $bookDuration * 60;
+                          @endphp
+
+                          @for($time = $start ; $time < $end ; $time += $duration)
+                          <option value="{{date("H", $time)}}" {{ (old("bookStartHour") == date("H", $time) ? "selected":"") }}>{{date("H", $time)}}</option>
+                          @endfor
+                        </select>
+                        <select class="custom-select" name="bookStartMinute" required>
+                          <option value="" {{ (old("bookStartMinute") == "" ? "selected":"") }}>Minute</option>
+                          <option value="00" {{ (old("bookStartMinute") == '00' ? "selected":"") }}>00</option>
+                          <option value="30" {{ (old("bookStartMinute") == '30' ? "selected":"") }}>30</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="col-xs-12 col-md-3">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <i class="far fa-calendar"></i> 
+                            &nbsp;
+                            End
+                          </div>
+                        </div>
+                        <input type="date" class="form-control" placeholder="dd/mm/yy" name="bookEndDate" value="{{old('bookEndDate')}}" min="{{$beginDate}}" max="{{$endDate}}" required>
+                      </div>
+                    </div>
+
+                    <div class="col-xs-12 col-md-3">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <i class="fas fa-hourglass-half"></i>
+                          </div>
+                        </div>
+
+                        <select class="custom-select" name="bookEndHour" required>
+                          <option value="" {{ (old("bookEndHour") == "" ? "selected":"") }}>Hour</option>
+                          @php
+                            $start = strtotime($dataMasterConfigs['bookStart']->configValue);
+                            $end = strtotime($dataMasterConfigs['bookEnd']->configValue);
+                            $bookDuration = $dataMasterConfigs['timeSlotDuration']->configValue;
+                            $duration = $bookDuration * 60;
+                          @endphp
+
+                          @for($time = $start ; $time < $end ; $time += $duration)
+                          <option value="{{date("H", $time)}}" {{ (old("bookEndHour") == date("H", $time) ? "selected":"") }}>{{date("H", $time)}}</option>
+                          @endfor
+                        </select>
+                        <select class="custom-select" name="bookEndMinute" required>
+                          <option value="" {{ (old("bookEndMinute") == "" ? "selected":"") }}>Minute</option>
+                          <option value="00" {{ (old("bookEndMinute") == '00' ? "selected":"") }}>00</option>
+                          <option value="30" {{ (old("bookEndMinute") == '30' ? "selected":"") }}>30</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
               </div>
             </div>
@@ -129,7 +209,7 @@
 
 </body>
 @endsection
-@section('script')
+{{-- @section('script')
 <script>
 $(function() {
   $('input[name="bookDate"]').daterangepicker({
@@ -142,4 +222,4 @@ $(function() {
   });
 });
 </script>
-@endsection
+@endsection --}}

@@ -1,6 +1,8 @@
 <html>
 <body>
     <h3>Booking Details</h3>
+    <p>Booking ID: {{$userBooking->id}}</p>
+    <p>Requestor Name: {{$userBooking->requestorName}}</p>
     <p>Room: {{$userBooking->facilities->facilId}}</p>
     <p>Booking time: {{$userBooking->bookDate}} from {{$userBooking->bookTime}} for {{$userBooking->bookDuration}} minutes</p>
     <p>Purpose: [{{$userBooking->eventType}}] {{$userBooking->eventName}}</p>

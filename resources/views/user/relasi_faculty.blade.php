@@ -29,7 +29,7 @@
                             <tr>
                                 <th>Email</th>
                                 <th>Name</th>
-                                <th>Phone</th>
+                                <th>Faculty</th>
                                 <th>Role</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -42,7 +42,7 @@
                                     {{ $user->email }}
                                 </td>
                                 <td>{{ $user->name }}</td>
-                                <td>{{ $user->phone }}</td>
+                                <td>{{ $user->faculty_value }}</td>
                                 <td>{{ $user->role == 1 ? 'User' : ($user->role == 2 ? 'Admin' : 'Faculty Admin') }}</td>
                                 <td>
                                     @if($user->active == 1)

@@ -21,6 +21,7 @@
             <h1 class="h3 mb-0 mt-4 text-gray-800">Facility Equipment Data</h1>
         </div>
 
+    @if(session('role') == 2)
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">Upload</h6>
@@ -39,6 +40,7 @@
                 </div>
             </div>
         </div>
+    @endif
 
         <div class="card shadow mb-4">
             <div class="card-body">

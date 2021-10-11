@@ -83,7 +83,10 @@
                                             </p>
                                         </th>
                                         <th scope="col" colspan="3">
-                                            <img src="{{$url}}">
+                                            {{-- <img src="{{$url}}"> --}}
+                                            @if(!is_null($facility->qrcode))
+                                            {!! QrCode::size(100)->generate(route('booking.confirm', ['code' => $facility->qrcode])); !!}
+                                            @endif
                                         </th>
                                     </tr>
                                 </thead>
@@ -101,6 +104,272 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr>
+                                        <th scope="row">00:00-01:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['00']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['00'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">01:00-02:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['01']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['01'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">02:00-03:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['02']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['02'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">03:00-04:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['03']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['03'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">04:00-05:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['04']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['04'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">05:00-06:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['05']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['05'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">06:00-07:00</th>
+                                        <td>
+                                            @if(isset($schedule['MINGGU']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SENIN']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SELASA']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['RABU']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['RABU']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['KAMIS']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['JUMAT']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(isset($schedule['SABTU']['06']))
+                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['06'] }} </span>
+                                            @endif
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <th scope="row">07:00-08:00</th>
                                         <td>
@@ -744,272 +1013,6 @@
                                         <td>
                                             @if(isset($schedule['SABTU']['23']))
                                                 <span class="bg-danger text-white">{{ $schedule['SABTU']['23'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">00:00-01:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['00']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['00'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">01:00-02:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['01']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['01'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">02:00-03:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['02']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['02'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">03:00-04:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['03']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['03'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">04:00-05:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['04']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['04'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">05:00-06:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['05']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['05'] }} </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">06:00-07:00</th>
-                                        <td>
-                                            @if(isset($schedule['MINGGU']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['MINGGU']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SENIN']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['SENIN']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SELASA']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['SELASA']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['RABU']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['RABU']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['KAMIS']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['KAMIS']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['JUMAT']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['JUMAT']['06'] }} </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if(isset($schedule['SABTU']['06']))
-                                                <span class="bg-danger text-white">{{ $schedule['SABTU']['06'] }} </span>
                                             @endif
                                         </td>
                                     </tr>

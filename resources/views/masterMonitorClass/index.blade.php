@@ -25,6 +25,7 @@
     <h1 class="h3 mb-0 mt-4 text-gray-800">Class Data</h1>
     </div>
 
+<?php if(session('role') == 2){ ?>
     <!-- DataTales Example -->
     <div class="card shadow mb-4">
     <!-- Card Header - Dropdown -->
@@ -48,7 +49,7 @@
         </div>
     </div>
     </div>
-
+<?php } ?>
     @if (session('sync'))
         <div class="alert alert-success" role="alert">
             Data successfully synced

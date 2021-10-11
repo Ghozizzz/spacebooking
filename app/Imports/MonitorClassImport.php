@@ -44,6 +44,11 @@ class MonitorClassImport implements ToModel, WithHeadingRow
         $monitorClass->classStat = $row['class_stat'];
         $monitorClass->classType = $row['class_type'];
         $monitorClass->combSectsId = $row['comb_sects_id'];
+        if($row['jam']!='-'){
+            $ex_jam = explode('-', $row['jam']);
+            $monitorClass->start = str_replace(' ', '', $ex_jam[0]);
+            $monitorClass->end = str_replace(' ', '', $ex_jam[1]);
+        }
         $monitorClass->save();
         return $monitorClass;
     }
