@@ -362,9 +362,9 @@ class MasterFacilityController extends Controller
                 $hari = '';
                 foreach ($monitorClasses as $monitorClass) {
                     $checker         = 0;
-                    if(empty($monitorClass->start)){
-                        echo $monitorClass->id_table;die();
-                    }
+                    // if(empty($monitorClass->start)){
+                    //     echo $monitorClass->id_table;die();
+                    // }
                     $start_class = $bs.' '.$monitorClass->start.':00';
                     $end_class = $bs.' '.$monitorClass->end.':00';
                     $startTime = Carbon::createFromFormat('d-m-Y H:i:s', $start_class)->addDays($no);
