@@ -318,6 +318,7 @@ class UserBookingController extends Controller
             'requestorFacility' => 'required',
         ]);
 
+        DB::beginTransaction();
 
         $startDate = date('d/m/Y', strtotime($request->bookStartDate));
         $endDate = date('d/m/Y', strtotime($request->bookEndDate));
@@ -407,9 +408,11 @@ class UserBookingController extends Controller
             if ($th->error->code === 'RequestBroker--ParseUri') {
                 $tokenCache = new TokenCache();
                 $tokenCache->clearTokens();
+                DB::rollBack();
                 return redirect()->route('login.index');
             } else {
-                return redirect()->back();
+                DB::rollBack();
+                return redirect()->back()->with('warning', 'Error Graph: '.$th);
             }
         }
 
@@ -422,7 +425,9 @@ class UserBookingController extends Controller
                 Mail::to($value->email)->send(new NewBooking($booking));
             }
         }
-        Mail::to("spacebooking@uph.edu")->send(new NewBooking($booking));
+        // Mail::to("spacebooking@uph.edu")->send(new NewBooking($booking));
+
+        DB::commit();
 
         return redirect()->route('home.index');
     }
