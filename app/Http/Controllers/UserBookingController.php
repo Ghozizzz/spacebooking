@@ -412,7 +412,7 @@ class UserBookingController extends Controller
                 return redirect()->route('login.index');
             } else {
                 DB::rollBack();
-                return redirect()->back()->with('warning', 'Error Graph: '.$th);
+                return redirect()->back()->with('warning', 'Error Graph: '.$th->error->code.' | '.$th->error->message);
             }
         }
 
@@ -425,7 +425,7 @@ class UserBookingController extends Controller
                 Mail::to($value->email)->send(new NewBooking($booking));
             }
         }
-        // Mail::to("spacebooking@uph.edu")->send(new NewBooking($booking));
+        Mail::to("room.host@uph.edu")->send(new NewBooking($booking));
 
         DB::commit();
 

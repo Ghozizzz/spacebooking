@@ -47,9 +47,9 @@
                     </a>
                   </form>
 
-                    <a href="{{route('login.signin_test')}}" class="btn btn-google btn-user btn-block">
+                    {{-- <a href="{{route('login.signin_test')}}" class="btn btn-google btn-user btn-block">
                       <i class="fab fa-microsoft fa-fw"></i> Login with Office365 Test
-                    </a>
+                    </a> --}}
                   @if($errors->any())
                   {!! implode('', $errors->all('
                     <div class="alert alert-danger my-2 text-center" role="alert">
