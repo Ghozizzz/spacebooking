@@ -330,7 +330,8 @@ class MasterFacilityController extends Controller
         }, function ($query){
             return $query;
         })
-        ->orderByRaw('CAST(capacity AS DECIMAL)')
+        // ->orderByRaw('CAST(capacity AS DECIMAL)')
+        ->orderBy('facilid','asc')
         ->get();
 
         //CHECK HARIAN, APAKAH HARI SAAT ITU AVAILABLE
@@ -365,30 +366,32 @@ class MasterFacilityController extends Controller
                     // if(empty($monitorClass->start)){
                     //     echo $monitorClass->id_table;die();
                     // }
-                    $start_class = $bs.' '.$monitorClass->start.':00';
-                    $end_class = $bs.' '.$monitorClass->end.':00';
-                    $startTime = Carbon::createFromFormat('d-m-Y H:i:s', $start_class)->addDays($no);
-                    $endTime = Carbon::createFromFormat('d-m-Y H:i:s', $end_class)->addDays($no);
+                    if($monitorClass->start && $monitorClass->end){
+                        $start_class = $bs.' '.$monitorClass->start.':00';
+                        $end_class = $bs.' '.$monitorClass->end.':00';
+                        $startTime = Carbon::createFromFormat('d-m-Y H:i:s', $start_class)->addDays($no);
+                        $endTime = Carbon::createFromFormat('d-m-Y H:i:s', $end_class)->addDays($no);
 
-                    $hari = $monitorClass->hari;
-                    if ($bookStart >= $startTime && $bookStart < $endTime) {
-                        $checker++;
-                    } else {
-                        if ($bookEnd > $startTime && $bookEnd <= $endTime) {
+                        $hari = $monitorClass->hari;
+                        if ($bookStart >= $startTime && $bookStart < $endTime) {
                             $checker++;
-                        }else{
-                            if($startTime > $bookStart && $startTime < $bookEnd){
+                        } else {
+                            if ($bookEnd > $startTime && $bookEnd <= $endTime) {
                                 $checker++;
                             }else{
-                                if($endTime > $bookStart && $endTime < $bookEnd){
+                                if($startTime > $bookStart && $startTime < $bookEnd){
                                     $checker++;
+                                }else{
+                                    if($endTime > $bookStart && $endTime < $bookEnd){
+                                        $checker++;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if ($checker > 0) {
-                        // echo $v->id.'<br>';
-                        $dataMasterFacility->forget($key);
+                        if ($checker > 0) {
+                            // echo $v->id.'<br>';
+                            $dataMasterFacility->forget($key);
+                        }
                     }
                 }
                 $no++;

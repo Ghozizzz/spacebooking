@@ -1,7 +1,7 @@
 @extends('layout')
 @section('content')
 <body>
-  <div class="container-fluid">
+  <div class="container-fluid pb-5">
 
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -40,7 +40,7 @@
                             <i class="far fa-building"></i>
                           </div>
                         </div>
-                        <select class="custom-select" name="building">
+                        <select class="custom-select" name="building" required>
                           <option value="" selected>Choose a room type</option>
                           @foreach($building as $item)
                             <option value="{{$item->building}}" {{ (old("building") == $item->building ? "selected":"") }}>{{$item->building}}</option>

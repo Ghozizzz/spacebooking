@@ -8,6 +8,9 @@
 
     <script type="text/javascript">
         $( document ).ready( function() {
+            $( '#admin-table' ).DataTable({
+
+            });
             $( '#user-table' ).DataTable({
 
             });
@@ -24,7 +27,7 @@
         <div class="card shadow mb-4">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="user-table">
+                    <table class="table table-bordered" id="admin-table">
                         <thead>
                             <tr>
                                 <th>Email</th>
