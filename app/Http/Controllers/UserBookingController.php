@@ -626,7 +626,7 @@ class UserBookingController extends Controller
         $userBooking->save();
 
         Mail::to($userBooking->requestorId)->send(new Booking($userBooking));
-        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
+        Mail::to("events@uph.edu")->send(new Booking($userBooking));
         // new Booking($userBooking);
 
         return redirect()->back();
@@ -644,7 +644,7 @@ class UserBookingController extends Controller
         $userBooking->save();
 
         // Mail::to($userBooking->requestorId)->send(new DeclineBooking($userBooking));
-        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
+        Mail::to("events@uph.edu")->send(new Booking($userBooking));
 
         return redirect()->back();
     }
@@ -661,7 +661,7 @@ class UserBookingController extends Controller
         }
 
         // Mail::to($userBooking->requestorId)->send(new CancelBooking($userBooking));
-        Mail::to("spacebooking@uph.edu")->send(new Booking($userBooking));
+        Mail::to("events@uph.edu")->send(new Booking($userBooking));
 
         return redirect()->back();
     }
@@ -855,27 +855,33 @@ class UserBookingController extends Controller
         // $token = $tokenCache->getAccessToken();
         $token = $this->call_graph();
         $tokenWithBearer = "Bearer $token";
-        try {
-            $res = $client->request('POST', $rootGraphUrl . "/sites/6c2e9cd5-b965-4b1a-ad60-e31ff17d6a54/drive/items/$booking->file/preview", [
-                'headers'        => [
-                    'Authorization' => $tokenWithBearer,
-                ],
-            ]);
-        } catch (ClientException $th) {
-            $th = $th->getResponse()->getBody(true)->getContents();
-            dump($rootGraphUrl . "/sites/6c2e9cd5-b965-4b1a-ad60-e31ff17d6a54/drive/items/$booking->file/preview");
-            dd($th);
-            $th = json_decode($th);
-            if ($th->error->code === 'RequestBroker--ParseUri') {
-                $tokenCache = new TokenCache();
-                $tokenCache->clearTokens();
-                return redirect()->route('login.index');
-            }
-        }
-        $arrayData = json_decode($res->getBody()->getContents(), true);
 
-        $main_url = $arrayData['getUrl'];
-        $file = readfile($main_url);
+        if($booking->file){
+            try {
+                $res = $client->request('POST', $rootGraphUrl . "/sites/6c2e9cd5-b965-4b1a-ad60-e31ff17d6a54/drive/items/$booking->file/preview", [
+                    'headers'        => [
+                        'Authorization' => $tokenWithBearer,
+                    ],
+                ]);
+            } catch (ClientException $th) {
+                $th = $th->getResponse()->getBody(true)->getContents();
+                dump($rootGraphUrl . "/sites/6c2e9cd5-b965-4b1a-ad60-e31ff17d6a54/drive/items/$booking->file/preview");
+                dd($th);
+                $th = json_decode($th);
+                if ($th->error->code === 'RequestBroker--ParseUri') {
+                    $tokenCache = new TokenCache();
+                    $tokenCache->clearTokens();
+                    return redirect()->route('login.index');
+                }
+            }
+            $arrayData = json_decode($res->getBody()->getContents(), true);
+
+            $main_url = $arrayData['getUrl'];
+            echo '<iframe src="'.$main_url.'" title="file" height="450" width="100%"></iframe>';
+        }else{
+            echo 'No File Data ... <br>';
+        }
+        // $file = readfile($main_url);
     }
 
     public function confirm(Request $request)

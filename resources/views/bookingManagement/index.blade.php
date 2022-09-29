@@ -658,6 +658,7 @@
         $('.pdf-btn').click(function () {
             var path = $(this).attr('href');
             var embed = '<embed src="' + path + '" height="450" width="100%" id="pdf-embed">';
+            // var embed = '<iframe src="' + path + '" title="description"></iframe>';
             $('#pdf-embed').remove();
             $('#modal-pdf').append(embed);
             var prompt = $(this).attr('aria-prompt');
